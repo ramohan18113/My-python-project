@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleek Command Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --accent-color: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.25);
+            --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .brand-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .color-picker {
+            appearance: none;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-picker::-webkit-color-swatch {
+            border: 2px solid var(--card-border);
+            border-radius: 50%;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-color);
+            box-shadow: 0 10px 30px -10px var(--accent-glow);
+        }
+
+        .card-title {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .activity-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .activity-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .activity-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .activity-time {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <header>
+        <div class="brand">
+            <div class="brand-dot"></div>
+            <span>Apex OS</span>
+        </div>
+        <div class="controls">
+            <span style="font-size: 0.85rem; color: var(--text-muted);">Accent:</span>
+            <input type="color" id="themeColor" class="color-picker" value="#6366f1">
+        </div>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">Active Users</div>
+            <div class="card-value" id="active-users">--</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Server Load</div>
+            <div class="card-value" id="server-load">--</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Network</div>
+            <div class="card-value" id="network-throughput">--</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Uptime</div>
+            <div class="card-value" id="uptime">--</div>
+        </div>
+    </div>
+
+    <div class="activity-section">
+        <div class="activity-header">Recent System Events</div>
+        <ul class="activity-list" id="activity-list">
+            <li class="activity-item">Loading events...</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Accent color customization
+    const colorPicker = document.getElementById('themeColor');
+    colorPicker.addEventListener('input', (e) => {
+        const hex = e.target.value;
+        document.documentElement.style.setProperty('--accent-color', hex);
+        document.documentElement.style.setProperty('--accent-glow', `${hex}40`);
+
+        // Notify API of settings update
+        fetch('/api/v1/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accent_color: hex })
+        }).catch(err => console.error("Error saving settings:", err));
+    });
+
+    // Fetch live dashboard metrics from Python Flask backend
+    async function loadDashboardData() {
+        try {
+            const response = await fetch('/api/v1/stats');
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                // Populate metrics
+                document.getElementById('active-users').textContent = data.metrics.active_users.toLocaleString();
+                document.getElementById('server-load').textContent = data.metrics.server_load;
+                document.getElementById('network-throughput').textContent = data.metrics.network_throughput;
+                document.getElementById('uptime').textContent = data.metrics.uptime;
+
+                // Populate activity log
+                const listEl = document.getElementById('activity-list');
+                listEl.innerHTML = '';
+                data.recent_activity.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'activity-item';
+                    li.innerHTML = `
+                        <span>${item.event}</span>
+                        <span class="activity-time">${item.timestamp}</span>
+                    `;
+                    listEl.appendChild(li);
+                });
+            }
+        } catch (error) {
+            console.error('Failed to load stats from Flask backend:', error);
+        }
+    }
+
+    // Load metrics on boot
+    document.addEventListener('DOMContentLoaded', loadDashboardData);
+</script>
+
+</body>
+</html>

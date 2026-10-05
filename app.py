@@ -1,39 +1,31 @@
 import os
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
-from services.analytics_service import AnalyticsService
+from services.data_service import DataService
 
 app = Flask(__name__)
-CORS(app)  # Enables Cross-Origin Resource Sharing if needed
-
-# --- PAGES ---
+CORS(app)
 
 @app.route("/")
 def index():
-    """Serves the main single-page application."""
+    """Renders the dashboard UI."""
     return render_template("index.html")
 
-# --- API ENDPOINTS ---
+@app.route("/api/v1/analytics", methods=["GET"])
+def fetch_analytics():
+    """
+    API endpoint returning dynamically calculated analytics based on query parameters.
+    Example: /api/v1/analytics?region=us-east&days=14&mode=turbo
+    """
+    region = request.args.get("region", "global")
+    try:
+        days = int(request.args.get("days", 7))
+    except ValueError:
+        days = 7
+    mode = request.args.get("mode", "standard")
 
-@app.route("/api/v1/stats", methods=["GET"])
-def get_stats():
-    """Returns analytics and system status metrics."""
-    data = AnalyticsService.get_dashboard_stats()
+    data = DataService.get_filtered_data(region=region, days=days, performance_mode=mode)
     return jsonify(data), 200
-
-@app.route("/api/v1/settings", methods=["POST"])
-def save_settings():
-    """Receives and processes configuration updates (e.g. accent colors)."""
-    payload = request.get_json() or {}
-    response = AnalyticsService.update_settings(payload)
-    return jsonify(response), 200
-
-# --- HEALTH CHECK ---
-
-@app.route("/health", methods=["GET"])
-def health_check():
-    """Simple status check endpoint."""
-    return jsonify({"status": "healthy", "service": "dashboard-api"}), 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
